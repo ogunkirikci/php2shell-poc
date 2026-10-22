@@ -78,7 +78,7 @@ Pre-built IDS / WAF / SIEM rules in [`detection/`](detection/):
 
 | File | Format | Signatures |
 |------|--------|-----------|
-| `php2shell.rules` | Suricata / Snort | 13 rules — request, response, and recon |
+| `php2shell.rules` | Suricata / Snort | 12 rules — request, response, and recon |
 | `php2shell.yaml` | Sigma | 5 rules — web logs, process creation, file events |
 | `modsecurity.conf` | ModSecurity v2/v3 | 7 rules — drop-in for Apache/Nginx |
 | `php2shell.lua` | OpenResty Lua | Lightweight reverse proxy module |
@@ -86,6 +86,38 @@ Pre-built IDS / WAF / SIEM rules in [`detection/`](detection/):
 **Fastest mitigation:** block `PHP_SESSION_UPLOAD_PROGRESS` in multipart POST bodies. Near-zero legitimate use, covers the primary attack vector for both CVEs.
 
 ## Quick Start
+
+### Offline detection validation
+
+An offline regression framework measures four synthetic HTTP indicators with
+TP/FP/FN/TN counts, coverage, and JSON/Markdown reports. It does not execute the
+Suricata, ModSecurity, or Sigma rules. No lab or network access is required.
+
+```bash
+python3 -B -m unittest discover -v
+python3 -B tools/validate_detection.py --require-coverage
+```
+
+See [coverage and usage](docs/detection-coverage.md) and the
+[engineering plan](docs/engineering/implementation-plan.md) for scope and limitations.
+
+### Native detection engines and reports
+
+Run actual Suricata, ModSecurity and Sigma rules in a network-isolated Docker
+container, with per-rule coverage, independent traffic metrics and
+JSON/Markdown/HTML/SARIF reports:
+
+```bash
+python3 -B -m tools.run_native --build --with-crs
+python3 -B -m tools.run_native --tests
+```
+
+The toolkit also supports offline PCAP analysis and a digest-pinned PHP
+configuration/advisory-version matrix. See [native validation](docs/native-validation.md)
+for commands, measured limitations and CI integration. Expected rule behavior
+can pass while independent traffic metrics still reveal known FP/FN scenarios.
+
+### Vulnerable research lab
 
 ```bash
 git clone https://github.com/ikow/php2shell-poc.git && cd php2shell-poc
